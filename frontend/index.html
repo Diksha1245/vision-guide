@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Navigation Assistant for visually impaired users">
+    <title>Vision Guide - AI Navigation Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <h1 class="logo-text">Vision Guide</h1>
+            </div>
+            <p class="tagline">AI-powered navigation for the visually impaired</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Camera View -->
+            <div class="camera-section">
+                <div class="camera-container">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    
+                    <!-- Status Overlay -->
+                    <div class="status-overlay" id="statusOverlay">
+                        <div class="pulse-ring"></div>
+                        <span id="statusText">Ready</span>
+                    </div>
+
+                    <!-- Detection Overlay -->
+                    <div class="detection-overlay" id="detectionOverlay">
+                        <p class="detection-message" id="detectionMessage">Waiting for detection...</p>
+                    </div>
+                </div>
+
+                <!-- Camera Controls -->
+                <div class="controls">
+                    <button class="btn btn-primary btn-large" id="startBtn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Start Navigation
+                    </button>
+                    
+                    <button class="btn btn-danger btn-large" id="stopBtn" style="display: none;">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                        Stop Navigation
+                    </button>
+                </div>
+            </div>
+
+            <!-- Voice Command Section (Phase 2) -->
+            <div class="voice-section">
+                <h2 class="section-title">Voice Commands</h2>
+                <div class="voice-controls">
+                    <button class="btn btn-secondary" onclick="askQuestion('What is in front?')">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                        What's in front?
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="askQuestion('Is there a person nearby?')">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        People nearby?
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="askQuestion('Any obstacles?')">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        Any obstacles?
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="settings-section">
+                <h2 class="section-title">Settings</h2>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="apiUrl" class="setting-label">API URL</label>
+                        <input 
+                            type="text" 
+                            id="apiUrl" 
+                            class="setting-input" 
+                            value="http://localhost:8000"
+                            placeholder="http://localhost:8000"
+                        >
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label for="voiceRate" class="setting-label">Voice Speed</label>
+                        <input 
+                            type="range" 
+                            id="voiceRate" 
+                            class="setting-slider" 
+                            min="0.5" 
+                            max="2" 
+                            step="0.1" 
+                            value="1"
+                        >
+                        <span class="setting-value" id="voiceRateValue">1.0x</span>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label for="detectionInterval" class="setting-label">Detection Interval (seconds)</label>
+                        <input 
+                            type="range" 
+                            id="detectionInterval" 
+                            class="setting-slider" 
+                            min="0.5" 
+                            max="3" 
+                            step="0.5" 
+                            value="1"
+                        >
+                        <span class="setting-value" id="intervalValue">1.0s</span>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label for="confidence" class="setting-label">Detection Confidence</label>
+                        <input 
+                            type="range" 
+                            id="confidence" 
+                            class="setting-slider" 
+                            min="0.2" 
+                            max="0.8" 
+                            step="0.1" 
+                            value="0.4"
+                        >
+                        <span class="setting-value" id="confidenceValue">0.4</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Info -->
+            <div class="info-section">
+                <div class="info-card">
+                    <div class="info-icon">📊</div>
+                    <div class="info-content">
+                        <h3>Detections</h3>
+                        <p id="detectionCount">0</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">⏱️</div>
+                    <div class="info-content">
+                        <h3>Response Time</h3>
+                        <p id="responseTime">--ms</p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon">🔊</div>
+                    <div class="info-content">
+                        <h3>Voice Status</h3>
+                        <p id="voiceStatus">Ready</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Vision Guide - Empowering independence through AI</p>
+            <p class="footer-small">Web-based navigation assistant • No app required</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
